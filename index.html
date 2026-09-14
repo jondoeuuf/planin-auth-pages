@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Planin</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    background: #F7F7FA; color: #16161F; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 24px; box-sizing: border-box;
+  }
+  @media (prefers-color-scheme: dark) { body { background: #12121B; color: #F2F2F7; } }
+  .card { max-width: 420px; width: 100%; text-align: center; }
+  h1 { font-size: 22px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.5px; }
+  p { font-size: 15px; line-height: 1.5; color: #6B6B76; margin: 12px 0; }
+  @media (prefers-color-scheme: dark) { p { color: #A3A3AE; } }
+  .btn {
+    display: inline-block; width: 100%; box-sizing: border-box; padding: 14px 20px; margin-top: 12px;
+    background: #5146C8; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 700;
+    text-decoration: none; cursor: pointer;
+  }
+  .btn.secondary { background: transparent; color: #5146C8; border: 1px solid #5146C8; }
+  input {
+    width: 100%; box-sizing: border-box; padding: 12px 14px; margin-top: 12px; border-radius: 12px;
+    border: 1px solid #D9D9E3; font-size: 15px;
+  }
+  .error { color: #EF4444; }
+  .status { font-size: 14px; margin-top: 10px; min-height: 18px; }
+  .logo { font-size: 26px; font-weight: 800; letter-spacing: -1px; margin-bottom: 18px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">Planin</div>
+
+    <div id="success">
+      <h1>Adresse e-mail confirmée ✅</h1>
+      <p>Ton compte Planin est prêt.</p>
+      <a class="btn" id="open-app" href="#">Ouvrir Planin</a>
+      <p>Si rien ne se passe, ouvre l'app Planin et connecte-toi avec ton
+         e-mail et ton mot de passe — ton adresse est déjà confirmée, même
+         sur un autre appareil.</p>
+    </div>
+
+    <div id="expired" hidden>
+      <h1>Lien expiré</h1>
+      <p class="error">Ce lien a expiré ou a déjà été utilisé.</p>
+      <p>Saisis ton adresse e-mail pour recevoir un nouveau lien de confirmation.</p>
+      <input id="email" type="email" placeholder="toi@exemple.com" autocomplete="email" />
+      <button class="btn" id="resend">Renvoyer l'e-mail de confirmation</button>
+      <div class="status" id="resend-status"></div>
+    </div>
+
+    <div id="generic" hidden>
+      <h1>Impossible de confirmer ce lien</h1>
+      <p class="error">Quelque chose s'est mal passé. Ouvre l'app Planin et
+         réessaie de te connecter, ou demande un nouvel e-mail de
+         confirmation depuis l'écran de connexion.</p>
+      <a class="btn secondary" href="planin://confirm-email">Ouvrir Planin</a>
+    </div>
+  </div>
+
+  <script>
+    var SUPABASE_URL = "https://umunjdayfswrxmsegypw.supabase.co";
+    var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_qWgz7Tp8LILTr81MCf7jVg_F-GIB7or";
+
+    var params = new URLSearchParams(window.location.search);
+    var code = params.get("code");
+    var errorCode = params.get("error_code") || params.get("error");
+    var flow = params.get("flow") || "signup";
+    var host = flow === "recovery" ? "reset-password" : "confirm-email";
+
+    function show(id) {
+      ["success", "expired", "generic"].forEach(function (other) {
+        document.getElementById(other).hidden = other !== id;
+      });
+    }
+
+    if (code) {
+      var appLink = "planin://" + host + "?code=" + encodeURIComponent(code);
+      var openBtn = document.getElementById("open-app");
+      openBtn.href = appLink;
+      show("success");
+      // Best-effort automatic hand-off, in addition to the button — some
+      // browsers allow a scripted custom-scheme navigation, some don't.
+      try { window.location.href = appLink; } catch (e) {}
+    } else if (errorCode === "otp_expired" || errorCode === "access_denied") {
+      show("expired");
+    } else {
+      // Covers both an explicit other error and a malformed/direct hit on
+      // this page (no code, no error at all).
+      show("generic");
+    }
+
+    document.getElementById("resend").addEventListener("click", function () {
+      var email = document.getElementById("email").value.trim();
+      var statusEl = document.getElementById("resend-status");
+      if (!email || email.indexOf("@") === -1) {
+        statusEl.textContent = "Adresse e-mail invalide.";
+        statusEl.className = "status error";
+        return;
+      }
+      statusEl.textContent = "Envoi en cours…";
+      statusEl.className = "status";
+      fetch(SUPABASE_URL + "/auth/v1/resend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SUPABASE_PUBLISHABLE_KEY,
+          "Authorization": "Bearer " + SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({ type: "signup", email: email }),
+      }).then(function (res) {
+        if (res.ok) {
+          statusEl.textContent = "E-mail envoyé — vérifie ta boîte de réception.";
+          statusEl.className = "status";
+        } else {
+          statusEl.textContent = "Impossible d'envoyer l'e-mail pour le moment. Réessaie depuis l'app Planin.";
+          statusEl.className = "status error";
+        }
+      }).catch(function () {
+        statusEl.textContent = "Impossible d'envoyer l'e-mail pour le moment. Réessaie depuis l'app Planin.";
+        statusEl.className = "status error";
+      });
+    });
+  </script>
+</body>
+</html>
