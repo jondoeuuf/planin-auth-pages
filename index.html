@@ -53,11 +53,11 @@
   .wordmark-text { font-size: 26px; font-weight: 800; letter-spacing: -1.3px; color: var(--wordmark-fg); }
   .wordmark-text b { color: var(--wordmark-primary); font-weight: 800; }
 
-  /* Illustration slot — placeholder icon for now, sized/positioned to take
-     the final artwork later without any layout change. See README. */
-  .illustration-slot {
-    width: 112px; height: 112px; margin: 0 auto 20px; border-radius: 18px;
-    background: var(--illustration-bg); display: flex; align-items: center; justify-content: center;
+  /* Success-state illustration — shared across all languages, no text
+     baked into the image itself (see t-success-title/message below for
+     the actual translated copy). Shown only on confirmation success. */
+  .illustration {
+    width: 200px; max-width: 56vw; height: auto; display: block; margin: 0 auto 20px;
   }
 
   h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin: 0 0 8px; }
@@ -90,9 +90,6 @@
     border-top-color: var(--primary); animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
-
-  .checkmark-ring { stroke: var(--success); }
-  .checkmark-path { stroke: var(--success); }
 </style>
 </head>
 <body>
@@ -104,22 +101,15 @@
 
     <div class="lang-switch" id="lang-switch" role="group" aria-label="Langue / Language"></div>
 
-    <!-- Illustration slot: neutral checkmark placeholder today; final
-         artwork (shared across all languages, no text baked in) will
-         replace the inner SVG only — the slot's size/position stays. -->
-    <div class="illustration-slot" id="illustration">
-      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle class="checkmark-ring" cx="24" cy="24" r="22" stroke-width="2.5" opacity="0.35"/>
-        <path class="checkmark-path" d="M15 24.5L21 30.5L33 17.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-
     <div id="state-verifying">
       <div class="spinner" style="margin: 0 auto;"></div>
       <p id="t-verifying" style="margin-top: 16px;"></p>
     </div>
 
     <div id="state-success" hidden>
+      <!-- Shared across all languages, no text baked into the file itself
+           — see assets/README.md. Shown only on real confirmation success. -->
+      <img class="illustration" src="assets/confirmation-illustration.png" alt="" width="660" height="660" />
       <h1 id="t-success-title"></h1>
       <p id="t-success-message"></p>
       <a class="btn" id="open-app" href="#"></a>
