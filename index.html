@@ -126,15 +126,10 @@
       <p id="t-fallback"></p>
     </div>
 
-    <div id="state-already" hidden>
-      <h1 id="t-already-title"></h1>
-      <p id="t-already-message"></p>
-      <a class="btn secondary" id="open-app-already" href="planin://confirm-email"></a>
-    </div>
-
     <div id="state-expired" hidden>
       <h1 id="t-expired-title"></h1>
       <p class="error" id="t-expired-message"></p>
+      <a class="btn secondary" id="open-app-expired" href="planin://confirm-email"></a>
       <p id="t-expired-prompt"></p>
       <input id="email-input" type="email" autocomplete="email" />
       <button class="btn" id="resend-btn"></button>
@@ -168,10 +163,9 @@
         success_message: "Ton adresse e-mail est confirmée. Ton planning t'attend.",
         open_button: "Ouvrir Planin",
         fallback: "Si rien ne se passe, ouvre l'app Planin et connecte-toi avec ton e-mail et ton mot de passe — ton adresse est déjà confirmée, même sur un autre appareil.",
-        already_message: "Ton adresse est déjà confirmée — connecte-toi simplement dans Planin.",
         expired_title: "Lien expiré",
-        expired_message: "Ce lien n'est plus valide — il a peut-être expiré ou déjà été utilisé.",
-        expired_prompt: "Indique ton adresse e-mail pour recevoir un nouveau lien de confirmation.",
+        expired_message: "Ce lien n'est plus valide — il a peut-être expiré ou déjà été utilisé. Si ton adresse est déjà confirmée, ouvrir Planin et te connecter suffit.",
+        expired_prompt: "Toujours bloqué ? Indique ton adresse e-mail pour recevoir un nouveau lien de confirmation.",
         email_hint: "toi@exemple.com",
         resend_button: "Renvoyer l'e-mail de confirmation",
         resend_sending: "Envoi en cours…",
@@ -188,10 +182,9 @@
         success_message: "Your email address is confirmed. Your schedule is waiting.",
         open_button: "Open Planin",
         fallback: "If nothing happens, open the Planin app and sign in with your email and password — your address is already confirmed, even on a different device.",
-        already_message: "Your address is already confirmed — just sign in to Planin.",
         expired_title: "Expired link",
-        expired_message: "This link is no longer valid — it may have expired or already been used.",
-        expired_prompt: "Enter your email address to get a new confirmation link.",
+        expired_message: "This link is no longer valid — it may have expired or already been used. If your address is already confirmed, opening Planin and signing in is all you need.",
+        expired_prompt: "Still stuck? Enter your email address to get a new confirmation link.",
         email_hint: "you@example.com",
         resend_button: "Resend confirmation email",
         resend_sending: "Sending…",
@@ -208,10 +201,9 @@
         success_message: "Tu dirección de email está confirmada. Tu planning te espera.",
         open_button: "Abrir Planin",
         fallback: "Si no pasa nada, abre la app Planin e inicia sesión con tu email y tu contraseña — tu dirección ya está confirmada, incluso en otro dispositivo.",
-        already_message: "Tu dirección ya está confirmada — simplemente inicia sesión en Planin.",
         expired_title: "Enlace caducado",
-        expired_message: "Este enlace ya no es válido — puede haber caducado o haber sido usado ya.",
-        expired_prompt: "Indica tu dirección de email para recibir un nuevo enlace de confirmación.",
+        expired_message: "Este enlace ya no es válido — puede haber caducado o haber sido usado ya. Si tu dirección ya está confirmada, basta con abrir Planin e iniciar sesión.",
+        expired_prompt: "¿Sigues atascado? Indica tu dirección de email para recibir un nuevo enlace de confirmación.",
         email_hint: "tu@ejemplo.com",
         resend_button: "Reenviar el email de confirmación",
         resend_sending: "Enviando…",
@@ -228,10 +220,9 @@
         success_message: "Il tuo indirizzo email è confermato. Il tuo planning ti aspetta.",
         open_button: "Apri Planin",
         fallback: "Se non succede nulla, apri l'app Planin e accedi con la tua email e la tua password — il tuo indirizzo è già confermato, anche su un altro dispositivo.",
-        already_message: "Il tuo indirizzo è già confermato — accedi semplicemente a Planin.",
         expired_title: "Link scaduto",
-        expired_message: "Questo link non è più valido — potrebbe essere scaduto o già stato utilizzato.",
-        expired_prompt: "Indica il tuo indirizzo email per ricevere un nuovo link di conferma.",
+        expired_message: "Questo link non è più valido — potrebbe essere scaduto o già stato utilizzato. Se il tuo indirizzo è già confermato, ti basta aprire Planin e accedere.",
+        expired_prompt: "Ancora bloccato? Indica il tuo indirizzo email per ricevere un nuovo link di conferma.",
         email_hint: "tu@esempio.com",
         resend_button: "Invia di nuovo l'e-mail di conferma",
         resend_sending: "Invio in corso…",
@@ -281,8 +272,6 @@
       setText("t-success-title", s.success_title);
       setText("t-success-message", s.success_message);
       setText("t-fallback", s.fallback);
-      setText("t-already-title", s.success_title);
-      setText("t-already-message", s.already_message);
       setText("t-expired-title", s.expired_title);
       setText("t-expired-message", s.expired_message);
       setText("t-expired-prompt", s.expired_prompt);
@@ -296,7 +285,8 @@
       var openBtn = document.getElementById("open-app");
       openBtn.textContent = s.open_button;
       openBtn.href = appLink;
-      document.getElementById("open-app-already").textContent = s.open_button;
+      document.getElementById("open-app-expired").textContent = s.open_button;
+      document.getElementById("open-app-expired").href = appLink;
       document.getElementById("open-app-error").textContent = s.open_button;
 
       // Language switcher itself
@@ -317,7 +307,7 @@
     }
 
     function show(id) {
-      ["state-verifying", "state-success", "state-already", "state-expired", "state-error"].forEach(function (other) {
+      ["state-verifying", "state-success", "state-expired", "state-error"].forEach(function (other) {
         document.getElementById(other).hidden = other !== id;
       });
     }
@@ -363,25 +353,21 @@
         },
         body: JSON.stringify({ type: "signup", email: email }),
       }).then(function (res) {
+        // Supabase's /resend deliberately returns 200 the same way whether
+        // the account is genuinely pending, already confirmed, or doesn't
+        // exist — a privacy measure against account enumeration, confirmed
+        // by direct testing. There is no reliable, safe signal here to
+        // distinguish "already confirmed" from "still pending" -- which is
+        // why the message above already covers both ("si ton adresse est
+        // déjà confirmée, ouvrir Planin et te connecter suffit") instead of
+        // promising a distinction this API can't provide.
         if (res.ok) {
           statusEl.textContent = s.resend_sent;
           statusEl.className = "status";
-          return;
+        } else {
+          statusEl.textContent = s.resend_generic_fail;
+          statusEl.className = "status error";
         }
-        return res.json().catch(function () { return {}; }).then(function (body) {
-          var msg = ((body && (body.msg || body.message || body.error_code)) || "").toLowerCase();
-          if (msg.indexOf("confirm") !== -1) {
-            // Distinguishes "already confirmed" from a genuinely expired/
-            // invalid link — Supabase's own error message for a resend
-            // targeting an already-confirmed account, surfaced instead of
-            // the generic failure text.
-            show("state-already");
-            render();
-          } else {
-            statusEl.textContent = s.resend_generic_fail;
-            statusEl.className = "status error";
-          }
-        });
       }).catch(function () {
         statusEl.textContent = s.resend_generic_fail;
         statusEl.className = "status error";
