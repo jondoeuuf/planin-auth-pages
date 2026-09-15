@@ -5,105 +5,354 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Planin</title>
 <style>
-  :root { color-scheme: light dark; }
+  :root {
+    color-scheme: light dark;
+    --bg: #F7F7FA;
+    --card-fg: #16161F;
+    --text-secondary: #656579;
+    --wordmark-surface: #F0EEFB;
+    --wordmark-primary: #5146C8;
+    --wordmark-fg: #242333;
+    --primary: #5146C8;
+    --error: #EF4444;
+    --success: #10B981;
+    --border: #E3E3EC;
+    --illustration-bg: #F0F0F5;
+    --input-bg: #FFFFFF;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12121B;
+      --card-fg: #F2F2F7;
+      --text-secondary: #94A3B8;
+      --wordmark-surface: #292541;
+      --wordmark-primary: #9F9AF5;
+      --wordmark-fg: #F7F7FA;
+      --primary: #9F9AF5;
+      --border: #353546;
+      --illustration-bg: #272735;
+      --input-bg: #1C1C28;
+    }
+  }
+  * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
-    background: #F7F7FA; color: #16161F; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    padding: 24px; box-sizing: border-box;
+    background: var(--bg); color: var(--card-fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 24px;
   }
-  @media (prefers-color-scheme: dark) { body { background: #12121B; color: #F2F2F7; } }
-  .card { max-width: 420px; width: 100%; text-align: center; }
-  h1 { font-size: 22px; font-weight: 800; margin: 0 0 4px; letter-spacing: -0.5px; }
-  p { font-size: 15px; line-height: 1.5; color: #6B6B76; margin: 12px 0; }
-  @media (prefers-color-scheme: dark) { p { color: #A3A3AE; } }
+  .card { max-width: 400px; width: 100%; text-align: center; }
+
+  /* Wordmark — mirrors lib/core/widgets/planin_wordmark.dart exactly */
+  .wordmark { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 22px; }
+  .wordmark-badge { position: relative; width: 36px; height: 36px; border-radius: 11px; background: var(--wordmark-surface); flex-shrink: 0; }
+  .wordmark-badge span { position: absolute; width: 5.04px; height: 14.4px; border-radius: 7px; background: var(--wordmark-primary); }
+  .wordmark-badge span:nth-child(1) { left: 8.28px; top: 7.2px; }
+  .wordmark-badge span:nth-child(2) { left: 15.48px; top: 10.8px; }
+  .wordmark-badge span:nth-child(3) { left: 22.68px; top: 14.4px; }
+  .wordmark-text { font-size: 26px; font-weight: 800; letter-spacing: -1.3px; color: var(--wordmark-fg); }
+  .wordmark-text b { color: var(--wordmark-primary); font-weight: 800; }
+
+  /* Illustration slot — placeholder icon for now, sized/positioned to take
+     the final artwork later without any layout change. See README. */
+  .illustration-slot {
+    width: 112px; height: 112px; margin: 0 auto 20px; border-radius: 18px;
+    background: var(--illustration-bg); display: flex; align-items: center; justify-content: center;
+  }
+
+  h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; margin: 0 0 8px; }
+  p { font-size: 15px; line-height: 1.5; color: var(--text-secondary); margin: 10px 0; }
+  p.error { color: var(--error); }
+
   .btn {
-    display: inline-block; width: 100%; box-sizing: border-box; padding: 14px 20px; margin-top: 12px;
-    background: #5146C8; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 700;
-    text-decoration: none; cursor: pointer;
+    display: inline-block; width: 100%; padding: 14px 20px; margin-top: 14px;
+    background: var(--primary); color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 700;
+    text-decoration: none; cursor: pointer; font-family: inherit;
   }
-  .btn.secondary { background: transparent; color: #5146C8; border: 1px solid #5146C8; }
+  .btn.secondary { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
   input {
-    width: 100%; box-sizing: border-box; padding: 12px 14px; margin-top: 12px; border-radius: 12px;
-    border: 1px solid #D9D9E3; font-size: 15px;
+    width: 100%; padding: 13px 14px; margin-top: 14px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--card-fg); font-size: 15px; font-family: inherit;
   }
-  .error { color: #EF4444; }
-  .status { font-size: 14px; margin-top: 10px; min-height: 18px; }
-  .logo { font-size: 26px; font-weight: 800; letter-spacing: -1px; margin-bottom: 18px; }
+  .status { font-size: 14px; margin-top: 10px; min-height: 18px; color: var(--text-secondary); }
+  .status.error { color: var(--error); }
   [hidden] { display: none !important; }
+
+  .lang-switch { display: flex; justify-content: center; gap: 6px; margin-bottom: 28px; }
+  .lang-switch button {
+    font-size: 18px; line-height: 1; padding: 6px 9px; border-radius: 10px; border: 1px solid transparent;
+    background: transparent; cursor: pointer;
+  }
+  .lang-switch button[aria-current="true"] { border-color: var(--border); background: var(--illustration-bg); }
+
+  .spinner {
+    width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--border);
+    border-top-color: var(--primary); animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .checkmark-ring { stroke: var(--success); }
+  .checkmark-path { stroke: var(--success); }
 </style>
 </head>
 <body>
   <div class="card">
-    <div class="logo">Planin</div>
-
-    <div id="success">
-      <h1>Adresse e-mail confirmée ✅</h1>
-      <p>Ton compte Planin est prêt.</p>
-      <a class="btn" id="open-app" href="#">Ouvrir Planin</a>
-      <p>Si rien ne se passe, ouvre l'app Planin et connecte-toi avec ton
-         e-mail et ton mot de passe — ton adresse est déjà confirmée, même
-         sur un autre appareil.</p>
+    <div class="wordmark" role="img" aria-label="Planin">
+      <div class="wordmark-badge"><span></span><span></span><span></span></div>
+      <div class="wordmark-text">planin<b>.</b></div>
     </div>
 
-    <div id="expired" hidden>
-      <h1>Lien expiré</h1>
-      <p class="error">Ce lien a expiré ou a déjà été utilisé.</p>
-      <p>Saisis ton adresse e-mail pour recevoir un nouveau lien de confirmation.</p>
-      <input id="email" type="email" placeholder="toi@exemple.com" autocomplete="email" />
-      <button class="btn" id="resend">Renvoyer l'e-mail de confirmation</button>
+    <div class="lang-switch" id="lang-switch" role="group" aria-label="Langue / Language"></div>
+
+    <!-- Illustration slot: neutral checkmark placeholder today; final
+         artwork (shared across all languages, no text baked in) will
+         replace the inner SVG only — the slot's size/position stays. -->
+    <div class="illustration-slot" id="illustration">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle class="checkmark-ring" cx="24" cy="24" r="22" stroke-width="2.5" opacity="0.35"/>
+        <path class="checkmark-path" d="M15 24.5L21 30.5L33 17.5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div id="state-verifying">
+      <div class="spinner" style="margin: 0 auto;"></div>
+      <p id="t-verifying" style="margin-top: 16px;"></p>
+    </div>
+
+    <div id="state-success" hidden>
+      <h1 id="t-success-title"></h1>
+      <p id="t-success-message"></p>
+      <a class="btn" id="open-app" href="#"></a>
+      <p id="t-fallback"></p>
+    </div>
+
+    <div id="state-already" hidden>
+      <h1 id="t-already-title"></h1>
+      <p id="t-already-message"></p>
+      <a class="btn secondary" id="open-app-already" href="planin://confirm-email"></a>
+    </div>
+
+    <div id="state-expired" hidden>
+      <h1 id="t-expired-title"></h1>
+      <p class="error" id="t-expired-message"></p>
+      <p id="t-expired-prompt"></p>
+      <input id="email-input" type="email" autocomplete="email" />
+      <button class="btn" id="resend-btn"></button>
       <div class="status" id="resend-status"></div>
     </div>
 
-    <div id="generic" hidden>
-      <h1>Impossible de confirmer ce lien</h1>
-      <p class="error">Quelque chose s'est mal passé. Ouvre l'app Planin et
-         réessaie de te connecter, ou demande un nouvel e-mail de
-         confirmation depuis l'écran de connexion.</p>
-      <a class="btn secondary" href="planin://confirm-email">Ouvrir Planin</a>
+    <div id="state-error" hidden>
+      <h1 id="t-error-title"></h1>
+      <p class="error" id="t-error-message"></p>
+      <button class="btn secondary" id="retry-btn"></button>
+      <a class="btn" id="open-app-error" href="planin://confirm-email"></a>
     </div>
   </div>
 
   <script>
     var SUPABASE_URL = "https://umunjdayfswrxmsegypw.supabase.co";
     var SUPABASE_PUBLISHABLE_KEY = "sb_publishable_qWgz7Tp8LILTr81MCf7jVg_F-GIB7or";
+    var SUPPORTED_LANGS = ["fr", "en", "es", "it"];
+    var FLAGS = { fr: "🇫🇷", en: "🇬🇧", es: "🇪🇸", it: "🇮🇹" };
+
+    // Mirrors lib/core/localization/translations/auth_translations.dart's
+    // auth_confirm_page_* keys (plus a handful of already-existing keys
+    // reused as-is: auth_email_hint, auth_resend_confirmation_button,
+    // auth_resend_confirmation_sent, auth_email_invalid, common_retry) — a
+    // static page can't import that Dart file, so this is a deliberate,
+    // commented mirror kept in sync by hand.
+    var STRINGS = {
+      fr: {
+        verifying: "Vérification en cours…",
+        success_title: "C'est tout bon !",
+        success_message: "Ton adresse e-mail est confirmée. Ton planning t'attend.",
+        open_button: "Ouvrir Planin",
+        fallback: "Si rien ne se passe, ouvre l'app Planin et connecte-toi avec ton e-mail et ton mot de passe — ton adresse est déjà confirmée, même sur un autre appareil.",
+        already_message: "Ton adresse est déjà confirmée — connecte-toi simplement dans Planin.",
+        expired_title: "Lien expiré",
+        expired_message: "Ce lien n'est plus valide — il a peut-être expiré ou déjà été utilisé.",
+        expired_prompt: "Indique ton adresse e-mail pour recevoir un nouveau lien de confirmation.",
+        email_hint: "toi@exemple.com",
+        resend_button: "Renvoyer l'e-mail de confirmation",
+        resend_sending: "Envoi en cours…",
+        resend_sent: "E-mail de confirmation renvoyé — vérifie ta boîte de réception.",
+        resend_invalid_email: "Email invalide",
+        resend_generic_fail: "Impossible d'envoyer l'e-mail pour le moment. Réessaie depuis l'app Planin.",
+        error_title: "Impossible de confirmer ce lien",
+        error_message: "Quelque chose s'est mal passé.",
+        retry: "Réessayer",
+      },
+      en: {
+        verifying: "Verifying…",
+        success_title: "All set!",
+        success_message: "Your email address is confirmed. Your schedule is waiting.",
+        open_button: "Open Planin",
+        fallback: "If nothing happens, open the Planin app and sign in with your email and password — your address is already confirmed, even on a different device.",
+        already_message: "Your address is already confirmed — just sign in to Planin.",
+        expired_title: "Expired link",
+        expired_message: "This link is no longer valid — it may have expired or already been used.",
+        expired_prompt: "Enter your email address to get a new confirmation link.",
+        email_hint: "you@example.com",
+        resend_button: "Resend confirmation email",
+        resend_sending: "Sending…",
+        resend_sent: "Confirmation email resent — check your inbox.",
+        resend_invalid_email: "Invalid email",
+        resend_generic_fail: "Couldn't send the email right now. Try again from the Planin app.",
+        error_title: "Couldn't confirm this link",
+        error_message: "Something went wrong.",
+        retry: "Retry",
+      },
+      es: {
+        verifying: "Verificando…",
+        success_title: "¡Todo listo!",
+        success_message: "Tu dirección de email está confirmada. Tu planning te espera.",
+        open_button: "Abrir Planin",
+        fallback: "Si no pasa nada, abre la app Planin e inicia sesión con tu email y tu contraseña — tu dirección ya está confirmada, incluso en otro dispositivo.",
+        already_message: "Tu dirección ya está confirmada — simplemente inicia sesión en Planin.",
+        expired_title: "Enlace caducado",
+        expired_message: "Este enlace ya no es válido — puede haber caducado o haber sido usado ya.",
+        expired_prompt: "Indica tu dirección de email para recibir un nuevo enlace de confirmación.",
+        email_hint: "tu@ejemplo.com",
+        resend_button: "Reenviar el email de confirmación",
+        resend_sending: "Enviando…",
+        resend_sent: "Email de confirmación reenviado — revisa tu bandeja de entrada.",
+        resend_invalid_email: "Email inválido",
+        resend_generic_fail: "No se pudo enviar el email en este momento. Vuelve a intentarlo desde la app Planin.",
+        error_title: "No se pudo confirmar este enlace",
+        error_message: "Algo salió mal.",
+        retry: "Reintentar",
+      },
+      it: {
+        verifying: "Verifica in corso…",
+        success_title: "Tutto pronto!",
+        success_message: "Il tuo indirizzo email è confermato. Il tuo planning ti aspetta.",
+        open_button: "Apri Planin",
+        fallback: "Se non succede nulla, apri l'app Planin e accedi con la tua email e la tua password — il tuo indirizzo è già confermato, anche su un altro dispositivo.",
+        already_message: "Il tuo indirizzo è già confermato — accedi semplicemente a Planin.",
+        expired_title: "Link scaduto",
+        expired_message: "Questo link non è più valido — potrebbe essere scaduto o già stato utilizzato.",
+        expired_prompt: "Indica il tuo indirizzo email per ricevere un nuovo link di conferma.",
+        email_hint: "tu@esempio.com",
+        resend_button: "Invia di nuovo l'e-mail di conferma",
+        resend_sending: "Invio in corso…",
+        resend_sent: "E-mail di conferma inviata di nuovo — controlla la tua posta.",
+        resend_invalid_email: "Email non valida",
+        resend_generic_fail: "Impossibile inviare l'e-mail al momento. Riprova dall'app Planin.",
+        error_title: "Impossibile confermare questo link",
+        error_message: "Qualcosa è andato storto.",
+        retry: "Riprova",
+      },
+    };
 
     var params = new URLSearchParams(window.location.search);
     var code = params.get("code");
     var errorCode = params.get("error_code") || params.get("error");
     var flow = params.get("flow") || "signup";
     var host = flow === "recovery" ? "reset-password" : "confirm-email";
+    var appLink = code ? "planin://" + host + "?code=" + encodeURIComponent(code) : "planin://" + host;
+
+    // --- language resolution: ?lang= -> browser language -> French ---
+    function resolveLang() {
+      var urlLang = (params.get("lang") || "").toLowerCase();
+      if (SUPPORTED_LANGS.indexOf(urlLang) !== -1) return urlLang;
+      var browserLangs = navigator.languages || [navigator.language || ""];
+      for (var i = 0; i < browserLangs.length; i++) {
+        var code2 = (browserLangs[i] || "").slice(0, 2).toLowerCase();
+        if (SUPPORTED_LANGS.indexOf(code2) !== -1) return code2;
+      }
+      return "fr";
+    }
+    var currentLang = resolveLang();
+
+    // --- state: determined once from the URL, never re-verified when the
+    // language is switched (see render()) ---
+    var state = code ? "success" : (errorCode === "otp_expired" || errorCode === "access_denied") ? "expired" : "error";
+
+    function setText(id, text) {
+      var el = document.getElementById(id);
+      if (el) el.textContent = text;
+    }
+
+    function render() {
+      var s = STRINGS[currentLang];
+      document.documentElement.lang = currentLang;
+
+      setText("t-verifying", s.verifying);
+      setText("t-success-title", s.success_title);
+      setText("t-success-message", s.success_message);
+      setText("t-fallback", s.fallback);
+      setText("t-already-title", s.success_title);
+      setText("t-already-message", s.already_message);
+      setText("t-expired-title", s.expired_title);
+      setText("t-expired-message", s.expired_message);
+      setText("t-expired-prompt", s.expired_prompt);
+      setText("t-error-title", s.error_title);
+      setText("t-error-message", s.error_message);
+
+      document.getElementById("email-input").placeholder = s.email_hint;
+      document.getElementById("resend-btn").textContent = s.resend_button;
+      document.getElementById("retry-btn").textContent = s.retry;
+
+      var openBtn = document.getElementById("open-app");
+      openBtn.textContent = s.open_button;
+      openBtn.href = appLink;
+      document.getElementById("open-app-already").textContent = s.open_button;
+      document.getElementById("open-app-error").textContent = s.open_button;
+
+      // Language switcher itself
+      var switchEl = document.getElementById("lang-switch");
+      switchEl.innerHTML = "";
+      SUPPORTED_LANGS.forEach(function (lang) {
+        var btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = FLAGS[lang];
+        btn.setAttribute("aria-label", lang);
+        btn.setAttribute("aria-current", lang === currentLang ? "true" : "false");
+        btn.addEventListener("click", function () {
+          currentLang = lang;
+          render(); // display-only: the already-determined `state` never changes
+        });
+        switchEl.appendChild(btn);
+      });
+    }
 
     function show(id) {
-      ["success", "expired", "generic"].forEach(function (other) {
+      ["state-verifying", "state-success", "state-already", "state-expired", "state-error"].forEach(function (other) {
         document.getElementById(other).hidden = other !== id;
       });
     }
 
-    if (code) {
-      var appLink = "planin://" + host + "?code=" + encodeURIComponent(code);
-      var openBtn = document.getElementById("open-app");
-      openBtn.href = appLink;
-      show("success");
-      // Best-effort automatic hand-off, in addition to the button — some
-      // browsers allow a scripted custom-scheme navigation, some don't.
-      try { window.location.href = appLink; } catch (e) {}
-    } else if (errorCode === "otp_expired" || errorCode === "access_denied") {
-      show("expired");
-    } else {
-      // Covers both an explicit other error and a malformed/direct hit on
-      // this page (no code, no error at all).
-      show("generic");
-    }
+    render();
 
-    document.getElementById("resend").addEventListener("click", function () {
-      var email = document.getElementById("email").value.trim();
+    // Brief, real "verifying" beat: this is also the window during which the
+    // automatic planin:// hand-off (below) gets a chance to actually switch
+    // the OS to the app before the fallback UI renders underneath it — not
+    // an artificial delay for its own sake.
+    setTimeout(function () {
+      if (state === "success") {
+        show("state-success");
+        try { window.location.href = appLink; } catch (e) {}
+      } else if (state === "expired") {
+        show("state-expired");
+      } else {
+        show("state-error");
+      }
+    }, code ? 350 : 200);
+
+    document.getElementById("retry-btn").addEventListener("click", function () {
+      window.location.reload();
+    });
+
+    document.getElementById("resend-btn").addEventListener("click", function () {
+      var s = STRINGS[currentLang];
+      var email = document.getElementById("email-input").value.trim();
       var statusEl = document.getElementById("resend-status");
       if (!email || email.indexOf("@") === -1) {
-        statusEl.textContent = "Adresse e-mail invalide.";
+        statusEl.textContent = s.resend_invalid_email;
         statusEl.className = "status error";
         return;
       }
-      statusEl.textContent = "Envoi en cours…";
+      statusEl.textContent = s.resend_sending;
       statusEl.className = "status";
       fetch(SUPABASE_URL + "/auth/v1/resend", {
         method: "POST",
@@ -115,14 +364,26 @@
         body: JSON.stringify({ type: "signup", email: email }),
       }).then(function (res) {
         if (res.ok) {
-          statusEl.textContent = "E-mail envoyé — vérifie ta boîte de réception.";
+          statusEl.textContent = s.resend_sent;
           statusEl.className = "status";
-        } else {
-          statusEl.textContent = "Impossible d'envoyer l'e-mail pour le moment. Réessaie depuis l'app Planin.";
-          statusEl.className = "status error";
+          return;
         }
+        return res.json().catch(function () { return {}; }).then(function (body) {
+          var msg = ((body && (body.msg || body.message || body.error_code)) || "").toLowerCase();
+          if (msg.indexOf("confirm") !== -1) {
+            // Distinguishes "already confirmed" from a genuinely expired/
+            // invalid link — Supabase's own error message for a resend
+            // targeting an already-confirmed account, surfaced instead of
+            // the generic failure text.
+            show("state-already");
+            render();
+          } else {
+            statusEl.textContent = s.resend_generic_fail;
+            statusEl.className = "status error";
+          }
+        });
       }).catch(function () {
-        statusEl.textContent = "Impossible d'envoyer l'e-mail pour le moment. Réessaie depuis l'app Planin.";
+        statusEl.textContent = s.resend_generic_fail;
         statusEl.className = "status error";
       });
     });
